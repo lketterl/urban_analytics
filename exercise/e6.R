@@ -104,7 +104,40 @@ library(tmap)
 #read shapefile Leeds
 Leeds <- readOGR("C:/Users/levin/Documents/uni/urban_analytics/git/urban_analytics/06_Data_Viz_2_Mapping_Areas/data", "E08000035")
 head(Leeds@data)
+Leeds@data$imd_rank <- as.numeric(Leeds@data$imd_rank)
 # tm_shape with 5 levels
-
-m <- tm_shape(Leeds, projection = 27700) + tm_polygons(col="imd_rank", n=10, style = "equal", border.col = "grey50", border.alpha = 0.5, title = "IMD Quintile", showNA = FALSE, palette = "YlOrRd")
+m <- tm_shape(Leeds, projection = 27700) + tm_polygons(col="imd_rank", n=10, style = "equal", border.col = "grey50", border.alpha = 0.5, title = "IMD Quintile", showNA = FALSE, palette = "Blues")
 m
+# remove layout
+m <- tm_shape(Leeds, projection = 27700) + tm_polygons(col="imd_rank", n=10, style = "equal", border.col = "grey50", border.alpha = 0.5, title = "IMD Quintile", showNA = FALSE, palette = "Blues") + tm_layout(legend.position = c("left", "bottom"), frame = FALSE)
+m
+
+# plot Leeds once more
+tm_shape(LSOA, projection=27700) + tm_polygons(col="imd_rank", style="cont",n=5,border.col = "grey50",  border.alpha = .5, showNA=FALSE,palette="Greys",title="IMD Rank") +
+# plot the roads
+tm_shape(roads, projection=27700) + tm_lines(col="grey50", lwd=0.1) +
+# plot the schools as orange dots
+tm_shape(schools_SDF) +
+    tm_symbols(size=0.5,shape=20, col="#f7756d") +
+    tm_add_legend(type="symbol", shape=20, col="#f7756d", title="Schools") +
+
+
+# Read in crime data
+Crimes_SP <- readOGR("C:/Users/levin/Documents/uni/urban_analytics/git/urban_analytics/06_Data_Viz_2_Mapping_Areas/data/", "crimes",verbose = FALSE)
+Crimes_SP@data$Crimes <- as.numeric(Crimes_SP@data$Crimes)
+# Plot
+m<- tm_shape(Leeds, projection=27700) +
+    tm_polygons(col="imd_rank", style="equal",n=5,border.col = "grey50",  border.alpha = .5, title="IMD Quintile", showNA=FALSE,palette="Greys") +
+  
+  # Add scaled bubbles
+  tm_shape(Crimes_SP) +
+    tm_bubbles("Crimes", title.size = "Crimes",col="#0EBFE9") +
+
+  # Add legend and remove borders
+    tm_layout(legend.position = c("left", "bottom"), 
+              frame = FALSE,legend.text.size = 0.65)
+
+# Plot the map
+m
+
+# add cartogram
