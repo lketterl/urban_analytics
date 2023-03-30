@@ -47,6 +47,64 @@ p + geom_line()
 
 library(ggmap)
 # getmap location chicago
-chicago <- get_map(location = "chicago", zoom = 1)
+chicago <- get_map(location = "chicago", zoom = 11)
+# remove crimes where Longitude or Latitude is NA
+crimes <- crimes[!is.na(crimes$Longitude) & !is.na(crimes$Latitude),]
+# plot chicago with crimes
+ggmap(chicago) + geom_point(data = crimes, aes(x = Longitude, y = Latitude))
+# reduce point size and increase transparency
+ggmap(chicago) + geom_point(data = crimes, aes(x = Longitude, y = Latitude), size = 0.5, alpha = 0.5)
 
-# missing api key
+# plot is as heatmap squares
+ggmap(chicago, base_layer = ggplot(crimes, aes(x=Longitude, y=Latitude))) +
+stat_bin2d(bins = 70)
+# plot using hexagons instead of squares
+ggmap(chicago, base_layer = ggplot(crimes, aes(x=Longitude, y=Latitude))) +
+stat_binhex(bins = 70)
+# tidy the map, removing the axes and gridlines and white background
+ggmap(chicago, base_layer = ggplot(crimes, aes(x=Longitude, y=Latitude))) +
+stat_binhex(bins = 70) +
+theme_void() +
+theme(legend.position="none")
+
+# map using a density surface plot
+ggmap(chicago, base_layer = ggplot(crimes)) +
+  stat_density2d(aes(x = Longitude, y = Latitude,fill = ..level..,alpha=..level..), bins = 10, geom = "polygon", data = crimes) +
+  scale_fill_gradient(low = "black", high = "red")
+
+# append quarter Q and day D columns to crimes
+crimes$Q <- quarter(crimes$New_Date)
+crimes$D <- wday(crimes$New_Date)
+# create a plot for quarters
+ggmap(chicago, base_layer = ggplot(crimes)) +
+  stat_density2d(aes(x = Longitude, y = Latitude,fill = ..level..,alpha=..level..), bins = 10, geom = "polygon", data = crimes) +
+  scale_fill_gradient(low = "black", high = "red") +
+  facet_wrap(~ Q) +
+  guides(alpha=FALSE) +
+  theme_bw() +
+theme(axis.line = element_blank(),
+      axis.text = element_blank(),
+      axis.title=element_blank(),
+      axis.ticks = element_blank(),
+      legend.key = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      panel.background = element_blank())
+
+# create a plot for days of the week
+ggmap(chicago, base_layer = ggplot(crimes)) +
+  stat_density2d(aes(x = Longitude, y = Latitude,fill = ..level..,alpha=..level..), bins = 10, geom = "polygon", data = crimes) +
+  scale_fill_gradient(low = "black", high = "red") +
+  facet_wrap(~ D) +
+  guides(alpha=FALSE) +
+  theme_bw() +
+theme(axis.line = element_blank(),
+      axis.text = element_blank(),
+      axis.title=element_blank(),
+      axis.ticks = element_blank(),
+      legend.key = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      panel.background = element_blank())
